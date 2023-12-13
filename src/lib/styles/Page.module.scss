@@ -1,7 +1,7 @@
 .page_wrapper {
   width: 100%;
   height: 100%;
-  max-width: 1200px;
+  max-width: 900px;
 
   margin: 0 auto;
   padding: 0.85rem;
@@ -39,6 +39,22 @@
     }
   }
 
+  .counts_wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+
+    .count {
+      cursor: pointer;
+
+      &.selected {
+        background: #10141d;
+
+        color: #fff;
+      }
+    }
+  }
+
   .count {
     margin-right: auto;
     padding: 0.35rem 0.55rem;
@@ -54,7 +70,6 @@
 
   .content_wrapper {
     display: flex;
-    align-items: center;
     justify-content: center;
     flex-direction: column;
     gap: 2.8rem;
@@ -73,9 +88,29 @@
     .content {
       line-height: 1.5;
 
-      font-size: 1rem;
+      font-size: 1.15rem;
       font-weight: 500;
+
       color: #1e1e1e;
+
+      strong {
+        font-weight: 800;
+      }
+
+      code {
+        padding: 0.15rem 0.35rem;
+
+        background: rgba(242, 241, 238, 0.6);
+        box-shadow: rgb(15 15 15 / 10%) 0px 0px 0px 1px inset;
+        border-radius: 0.325rem;
+
+        font-weight: 400;
+        color: #1e1e1ea4;
+      }
+
+      &:last-child {
+        padding-bottom: 4rem;
+      }
     }
   }
 }

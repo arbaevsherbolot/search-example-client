@@ -12,6 +12,8 @@ export default function SearchClient() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [result, setResult] = useState<Result[] | null>(null);
   const [resultCount, setResultCount] = useState<number>(0);
+  const [counts, setCounts] = useState<number[]>([]);
+  const [selectedCount, setSelectedCount] = useState<number | undefined>();
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -25,6 +27,10 @@ export default function SearchClient() {
 
         setResult(result);
         setResultCount(result.length);
+        setCounts(
+          Array.from({ length: result.length }, (_, index) => index + 1)
+        );
+        setSelectedCount(result.length > 0 ? 1 : undefined);
         setError(null);
       } catch (e: any) {
         console.error(e.message);
@@ -45,6 +51,54 @@ export default function SearchClient() {
     setSearchQuery(e.target.value);
   };
 
+  const handleChangeCount = (count: number) => {
+    setSelectedCount(count);
+  };
+
+  const formatText = (text: string) => {
+    const formattedText = text.replace(/<<(.*?)>>/g, "<code>$1</code>");
+    const boldifiedText = formattedText.replace(
+      /\*\*(.*?)\*\*/g,
+      "<strong>$1</strong>"
+    );
+    return { __html: boldifiedText };
+  };
+
+  const renderCounts = () => {
+    return counts.map((count, idx) => (
+      <span
+        key={idx}
+        className={`${styles.count} ${
+          selectedCount === count ? styles.selected : ""
+        }`}
+        onClick={() => handleChangeCount(count)}>
+        {count}
+      </span>
+    ));
+  };
+
+  const renderResults = () => {
+    if (isLoading) return <span className={styles.load}>Loading...</span>;
+    if (error) return <span className={styles.error}>{error}</span>;
+
+    const displayedResults = result?.slice(0, selectedCount || undefined);
+
+    return (
+      <div className={styles.content_wrapper}>
+        {displayedResults &&
+          displayedResults.map((item, idx) => {
+            if (idx + 1 == selectedCount) {
+              return (
+                <div key={idx} className={styles.content}>
+                  <span dangerouslySetInnerHTML={formatText(item.content)} />
+                </div>
+              );
+            }
+          })}
+      </div>
+    );
+  };
+
   return (
     <div className={styles.page_wrapper}>
       <input
@@ -55,19 +109,13 @@ export default function SearchClient() {
         placeholder="Search..."
       />
 
-      <span className={styles.count}>Search result: {resultCount}</span>
+      <span className={styles.count}>
+        {resultCount === 0 ? "Nothing found" : `Search result: ${resultCount}`}
+      </span>
 
-      <div className={styles.content_wrapper}>
-        {isLoading && <span className={styles.load}>Loading...</span>}
-        {error && <span className={styles.error}>{error}</span>}
+      <div className={styles.counts_wrapper}>{renderCounts()}</div>
 
-        {result &&
-          result.map((item, idx) => (
-            <div key={idx} className={styles.content}>
-              {item.content}
-            </div>
-          ))}
-      </div>
+      {renderResults()}
     </div>
   );
 }
