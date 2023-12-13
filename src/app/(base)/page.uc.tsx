@@ -32,7 +32,9 @@ export default function SearchClient() {
         setCounts(
           Array.from({ length: result.length }, (_, index) => index + 1)
         );
-        setSelectedCount(result.length > 0 ? parseInt(lastPage) : undefined);
+        setSelectedCount(
+          result.length > 0 ? parseInt(lastPage) || 1 : undefined
+        );
         setError(null);
       } catch (e: any) {
         console.error(e.message);
