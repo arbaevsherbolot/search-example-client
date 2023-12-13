@@ -28,6 +28,7 @@ export default function SearchClient() {
         const lastPage = await getCookieValue("lastPage");
 
         setResult(result);
+        setError(null);
         setResultCount(result.length);
         setCounts(
           Array.from({ length: result.length }, (_, index) => index + 1)
@@ -39,7 +40,6 @@ export default function SearchClient() {
               : result.length || 1
             : undefined
         );
-        setError(null);
       } catch (e: any) {
         console.error(e.message);
         setError(
