@@ -33,7 +33,11 @@ export default function SearchClient() {
           Array.from({ length: result.length }, (_, index) => index + 1)
         );
         setSelectedCount(
-          result.length > 0 ? parseInt(lastPage) || 1 : undefined
+          result.length > 0
+            ? parseInt(lastPage) && parseInt(lastPage) < result.length
+              ? parseInt(lastPage)
+              : result.length || 1
+            : undefined
         );
         setError(null);
       } catch (e: any) {
@@ -92,7 +96,7 @@ export default function SearchClient() {
       <div className={styles.content_wrapper}>
         {displayedResults &&
           displayedResults.map((item, idx) => {
-            if (idx + 1 == selectedCount) {
+            if (idx + 1 === selectedCount) {
               return (
                 <div key={idx} className={styles.content}>
                   <span dangerouslySetInnerHTML={formatText(item.content)} />
