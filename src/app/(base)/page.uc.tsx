@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import * as API from "@/../api";
+import { getCookieValue, setCookie } from "@/lib/utils/cookies";
 import styles from "@/lib/styles/Page.module.scss";
 
 type Result = {
@@ -24,13 +25,14 @@ export default function SearchClient() {
 
       try {
         const { result } = await API.search.search(searchQuery);
+        const lastPage = await getCookieValue("lastPage");
 
         setResult(result);
         setResultCount(result.length);
         setCounts(
           Array.from({ length: result.length }, (_, index) => index + 1)
         );
-        setSelectedCount(result.length > 0 ? 1 : undefined);
+        setSelectedCount(result.length > 0 ? parseInt(lastPage) : undefined);
         setError(null);
       } catch (e: any) {
         console.error(e.message);
@@ -53,6 +55,7 @@ export default function SearchClient() {
 
   const handleChangeCount = (count: number) => {
     setSelectedCount(count);
+    setCookie("lastPage", `${count}`);
   };
 
   const formatText = (text: string) => {
