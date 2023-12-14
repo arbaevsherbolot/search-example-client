@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import * as API from "@/../api";
 import styles from "@/lib/styles/Page.module.scss";
 
@@ -11,11 +12,20 @@ type Result = {
 };
 
 export default function SearchClient() {
+  const searchParams = useSearchParams();
+
+  const searchedPage = searchParams.get("page");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [result, setResult] = useState<Result[] | null>(null);
   const [page, setPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (searchedPage) {
+      setPage(parseInt(searchedPage));
+    }
+  }, [searchedPage]);
 
   useEffect(() => {
     const fetchData = async () => {
