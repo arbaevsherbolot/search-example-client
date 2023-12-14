@@ -2,19 +2,18 @@
 
 import React, { useState, useEffect } from "react";
 import * as API from "@/../api";
-import { getCookieValue, setCookie } from "@/lib/utils/cookies";
 import styles from "@/lib/styles/Page.module.scss";
 
 type Result = {
+  id: number;
   content: string;
+  selected: boolean;
 };
 
 export default function SearchClient() {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [result, setResult] = useState<Result[] | null>(null);
-  const [resultCount, setResultCount] = useState<number>(0);
-  const [counts, setCounts] = useState<number[]>([]);
-  const [selectedCount, setSelectedCount] = useState<number | undefined>();
+  const [page, setPage] = useState<number>(1);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -24,22 +23,10 @@ export default function SearchClient() {
       setResult(null);
 
       try {
-        const { result } = await API.search.search(searchQuery);
-        const lastPage = await getCookieValue("lastPage");
+        const { result } = await API.search.search(searchQuery, page);
 
         setResult(result);
         setError(null);
-        setResultCount(result.length);
-        setCounts(
-          Array.from({ length: result.length }, (_, index) => index + 1)
-        );
-        setSelectedCount(
-          result.length > 0
-            ? parseInt(lastPage) && parseInt(lastPage) < result.length
-              ? parseInt(lastPage)
-              : result.length || 1
-            : undefined
-        );
       } catch (e: any) {
         console.error(e.message);
         setError(
@@ -53,15 +40,10 @@ export default function SearchClient() {
     const debounceTimeout = setTimeout(fetchData, 300);
 
     return () => clearTimeout(debounceTimeout);
-  }, [searchQuery]);
+  }, [searchQuery, page]);
 
   const handleChangeSearchQuery = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
-  };
-
-  const handleChangeCount = (count: number) => {
-    setSelectedCount(count);
-    setCookie("lastPage", `${count}`);
   };
 
   const formatText = (text: string) => {
@@ -73,15 +55,21 @@ export default function SearchClient() {
     return { __html: boldifiedText };
   };
 
-  const renderCounts = () => {
-    return counts.map((count, idx) => (
+  const handleChangePage = (selectedPage: number) => {
+    if (selectedPage !== page) {
+      setPage(selectedPage);
+    }
+  };
+
+  const renderOrders = () => {
+    return result?.map((item, idx) => (
       <span
         key={idx}
-        className={`${styles.count} ${
-          selectedCount === count ? styles.selected : ""
-        }`}
-        onClick={() => handleChangeCount(count)}>
-        {count}
+        onClick={() => handleChangePage(item.id)}
+        className={
+          item.id === page ? `${styles.count} ${styles.selected}` : styles.count
+        }>
+        {item.id}
       </span>
     ));
   };
@@ -90,19 +78,17 @@ export default function SearchClient() {
     if (isLoading) return <span className={styles.load}>Loading...</span>;
     if (error) return <span className={styles.error}>{error}</span>;
 
-    const displayedResults = result?.slice(0, selectedCount || undefined);
-
     return (
       <div className={styles.content_wrapper}>
-        {displayedResults &&
-          displayedResults.map((item, idx) => {
-            if (idx + 1 === selectedCount) {
-              return (
+        {result &&
+          result.map((item, idx) => {
+            return (
+              item.selected && (
                 <div key={idx} className={styles.content}>
                   <span dangerouslySetInnerHTML={formatText(item.content)} />
                 </div>
-              );
-            }
+              )
+            );
           })}
       </div>
     );
@@ -118,11 +104,13 @@ export default function SearchClient() {
         placeholder="Search..."
       />
 
-      <span className={styles.count}>
-        {resultCount === 0 ? "Nothing found" : `Search result: ${resultCount}`}
-      </span>
+      <div className={styles.counts_wrapper}>{renderOrders()}</div>
 
-      <div className={styles.counts_wrapper}>{renderCounts()}</div>
+      <span className={styles.count}>
+        {result?.length === 0
+          ? "Nothing found"
+          : `Search result: ${result?.length}`}
+      </span>
 
       {renderResults()}
     </div>
